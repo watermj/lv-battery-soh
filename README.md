@@ -34,6 +34,36 @@ $$
 
 </p>
 
+**SOH_capacity** ≈ ratio of measured capacity (Ah) vs nominal capacity.\
+**SOH_resistance** ≈ normalized inverse of internal resistance.\
+$$w_C$$ is s a weighting factor (typically favoring capacity when discharge cycles are available, and resistance when only charge cycles or current pulses are available).\
+
+Applied **penalty factors from IBS diagnostic flags:**\
+**Sulfation flag** → apply a 10% reduction (×0.9).\
+**Defect flag** → apply a harsher reduction.
+
+<p align="center">
+
+$$
+SOH_{final} = SOH_{1} \times P_{flags}
+$$
+
+</p>
+
+<p align="center">
+
+$$
+P_{flags} =
+\begin{cases} 
+0.90 & \text{if sulfation = 1} \\
+0.80 & \text{if defect = 1} \\
+1.00 & \text{otherwise}
+\end{cases}
+$$
+
+</p>
+
+
 Second, I used ML models on the same IBS data to determine a SoH **(SOH2)**. Third, I used the top vehicle network features discovered along with various ML models (from Linear Regression to DNNs) to attempt to improve the LV SoH even further **(SOH3)**. 
 
 ## Modeling Evaluation
