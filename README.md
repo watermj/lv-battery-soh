@@ -23,3 +23,30 @@ First approach was to only use IBS signals itself. Therefore, all data other tha
 
 Second approach was to do feature engineering on the complete set of vehicle signals to find the imost mportant features that correlate to LV battery SoH. From there the top features were cleaned for only numeric. 
 
+## Modeling Approach
+Initially I used the only the IBS signals themselves with a standard algorithm to compute a SoH that could be compared against that reported by the IBS **(SOH1)**.
+
+<p align="center">
+
+$$
+SOH_{1} = w_C \cdot SOH_{capacity} + (1 - w_C) \cdot SOH_{resistance}
+$$
+
+</p>
+
+Second, I used ML models on the same IBS data to determine a SoH **(SOH2)**. Third, I used the top vehicle network features discovered along with various ML models (from Linear Regression to DNNs) to attempt to improve the LV SoH even further **(SOH3)**. 
+
+## Modeling Evaluation
+ML models used for this project were as follow:
+- Linear Regresssion
+- Random Forest Decision Trees
+- SVMs (Support Vector Machines)
+- ARIMA (AutoRegressive Integrated Moving Average)
+- Keras CNNs (Convolutional Neural Networks)
+- RNN (Regressive Neural Network)
+
+## Results & Insights
+tbd
+
+## Next Steps
+tbd
