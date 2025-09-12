@@ -8,3 +8,18 @@ This project aims to just scratch the surface of SoH possibilities by focusing o
 Therefore, we will analyze these LV battery charging cycles under various loading conditions to calculate and model LV battery SoH. 
 
 ## Approach
+Due to the critical nature of LV battery SoH, most modern vehicles are equipped with an Intelligent Battery Sensor (IBS). The IBS monitors all the critical battery parameters including current draw, internal resistance, temperature to determine its own SoH indicator that is then used by the main vehicle controllers. This is done via a standardized algorithmic approach. 
+
+The aim of this project is to compare the IBS SoH with a ML approach that uses the (1) IBS parameters alone to develop a comparative SoH indicator and (2) expand the parameters to the ~1000 vehicle signals with possibly identify an even more accurate 12V battery SoH metric.
+
+## Data Acquisition
+Acquisitions of vehicle network traffic was done using Vector CANalyzer tools to log and record data. These data files contain  massive amounts of data and are stored in Vectors proprietary blf binary file format. 
+
+## Data Pre-Processing
+The first step was to convert the Vector blf files to a readable '.csv' that then can be more easily digested by ML models. Again, due to the size of the files as they are recorded at ms intervals it is necessary to convert and down sample at the same time. While there python libraries developed to convert the blf format, I found them difficult and buggy. Therefore, I used Python BLFReader from the python-can library as the basis for developing my own converter and downsampling script that I could use. I do not provide the code here for this converter but may provide it in a separate GitHub repository at a later time. 
+
+After converting and down sampling the data to a 1 second rate, I then began the process of pre-processing and cleaning the data. 
+First approach was to only use IBS signals itself. Therefore, all data other than timestamp and IBS vehicle signals were removed. Followed by converting not numeric signals to numeric. 
+
+Second approach was to do feature engineering on the complete set of vehicle signals to find the imost mportant features that correlate to LV battery SoH. From there the top features were cleaned for only numeric. 
+
