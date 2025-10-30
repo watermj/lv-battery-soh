@@ -115,10 +115,21 @@ vehicle-soh-capstone/
 │
 ├── src/
 │   ├── __init__.py
+│   ├── cs_convert_blf2csv.py   # BLF to CSV conversion utility   
 │   └── soh_utils.py        # SOH calculations, merge_short_gaps, cycle counting
 │
 └── requirements.txt
 </pre>
+
+## BLF → CSV Converter 
+Convert Vector .blf files to .csv using provided DBC files.
+
+**Script:** `src/cs_convert_blf2csv.py`  
+**Outputs:** `<outdir>/<blf_basename>.csv`
+
+### Install
+pip install python-can cantools pandas numpy tqdm
+
 
 ### Contact and Further Information
 **Jason Waterman**  
