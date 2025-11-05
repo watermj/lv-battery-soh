@@ -82,6 +82,9 @@ ML models used for this project were as follow:
 - Random Forest Ensemble
 - LSTM (Long Short-Term Memory): subset of more powerful RNN (Regressive Neural Network) class used for time series data on large data sets with many features
 
+## Jupyter Notebooks
+The main Jupyter notebook that serves as the fundamental guide for the project is [cs_main_pipeline.ipynb](./cs_main_pipeline.ipynb)
+
 ## Insights & Next Steps
 - Initial results demonstrate that analysis of the vehicle network data reveals there are reliable predictors of overall vehicle health - including load and wake-state releated signals - revealing a scalable path to predictive vehicle intelligence. 
 - Even simple ML models, using just IBS signals, can start capturing dynamics that vendor SOH misses.
