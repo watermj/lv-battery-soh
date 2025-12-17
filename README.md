@@ -1,37 +1,40 @@
 # Vehicle State of Health (SoH) using AI/ML
+**Jason Waterman**
+
+*UC Berkeley AI/ML Professional Certificate Capstone Project | 2025*
 
 ## Problem Statement
 Vehicle State of Health (SoH) is an emerging application of AI/ML for automotive. Given the sheer number of Electronic Control Units (ECUs) in a modern vehicle and the network communication that occurs between these ECUs and now the cloud for connected vehicles, it is an obvious use case to apply Natural Language Processing (NLP) techniques to understand the basis of these communications. Furthermore, it seems reasonable to gather information on vehicle SoH beyond the traditional Diagnostic Trouble Codes (DTCs). 
 
 EVs (and really all modern vehicles) are data-rich but insight poor. The 12V battery remains the leading roadside failure cause despite vehicles broadcasting thousands of network signals (CAN/LIN/Ethernet) that already reflect system health. This is due to the fact that the 12V battery serves as the primary power source for the vehicle's ECUs. If the 12V has a problem then the vehicle will have a problem. Therefore, it is very important to constantly monitor the 12V health and re-charge it from the HV battery, when necessary.  
 
-For this project, I have gathered data directly from a current production vehicle - 2024 Fisker Ocean - to attempt to analyze these network signals for the 12V battery state of health indicators. My primary network signal target is the Intelligent Battery Sensor (IBS). The IBS main purpose is to monitor the 12V battery SoH and, in fact, has a SoH signal which indicates in precentage terms the battery's SoH (IBS_StateOfHealth). In addition, I calculate a real-time SoH using the other IBS signals including voltage, current, resistance & temperature. This is referred to as Calculated SOH1.
-I use both IBS SoH and calculated SOH1 as targets to train my ML models.   
+For this project, I have gathered data directly from a current production vehicle - 2024 Fisker Ocean - to attempt to analyze these network signals for the 12V battery state of health indicators. My primary network signal target for supervised learning is the Intelligent Battery Sensor (IBS). The IBS main purpose is to monitor the 12V battery SoH and, in fact, has a SoH signal which indicates in percentage terms the battery's SoH (IBS_StateOfHealth). In addition, I have included a calculated SOH which relies on battery physical parameters including voltage, current, resistance & temperature to generate a real-time prediction of battery health. This is referred to as Calculated SOH1. I use both IBS SoH and calculated SOH1 as targets to train my ML models.   
 
-I start out by using only IBS signals for feature modeling of SOH/SOH1 using simpler ML models - Linear Regression (LR), Ridge, Lasso, and Decision Tree (DT). Later I use derived 12V battery charging cycle metrics to expand my traning features. I then perform some feature engineering using the Random Forest (RF) Essemble modeling on the expanded feature set which includes these charging cycle metrics. Finally, I examine all the network signals using the more powerful LSTM (Long Short Term Memory) modeling which requires the higher processing capabilities of a GPU. 
+I start out by using only IBS signals for feature modeling of SOH/SOH1 using simpler ML models - Linear Regression (LR), Ridge, Lasso, and Decision Tree (DT). Later I use derived 12V battery charging cycle metrics to expand my training feature set. I then perform some feature engineering using the Random Forest (RF) Ensemble modeling on the expanded feature set which includes these charging cycle metrics. Here the goal is to identify which charging cycle signals have the most impact on the 12V battery health. Finally, I expand my feature set to consider the entire set of network signals we collected (2500+). Again, by applying some feature engineering techniques, the final expanded feature set is reduced to rich set of 768 signals which offer real-time insights on vehicle operation. Now we step up to using a specific type of RNN (Recurrent Neural Network) that can handle the a large set of time-series data called an LSTM (Long Short-Term Memory) model. The design of LSTMs allows them to "remember" important information over long time timespans and forget unimportant info. This is perfect for our application and is a very powerful tool. Handling LSTMs typically requires the higher processing capabilities of a modern GPU. 
 
-This project aims to just scratch the surface of SoH possibilities by focusing on one specific yet important use case—**12V battery SoH**. For both EVs and ICE vehicles it is the 12V battery (“LV battery") that drives the main ECUs that control the vehicle. For EVs to the large battery (“HV battery") that drives the powertrain is also used to periodically recharge the LV battery. It is this cycling that reduces the life of the 12V battery. Therefore, monitoring the LV battery SoH is a critical aspect in understanding vehicle SoH, predictive maintenance, and even OTA adjustments that may be used to extend the LV battery life. 
+This project aims to just scratch the surface of vehicle SoH possibilities by focusing on one specific yet important use case—**12V battery SoH**. For both EVs and ICE vehicles it is the 12V battery (“LV battery") that drives the main ECUs that control the vehicle. For EVs, it is the much larger battery (“HV battery") that drives the powertrain and is also used to periodically recharge the LV battery. It is this cycling that reduces the life of the 12V battery. Therefore, monitoring the LV battery SoH is a critical aspect in understanding vehicle SoH, predictive maintenance, and even OTA adjustments that may be used to extend the LV battery life. 
 
 Therefore, we will analyze these LV battery charging cycles under various loading conditions to calculate and model LV battery SoH. 
 
 ## Approach
 Due to the critical nature of LV battery SoH, most modern vehicles are equipped with an Intelligent Battery Sensor (IBS). The IBS monitors all the critical battery parameters including current draw, internal resistance, temperature to determine its own SoH indicator that is then used by the main vehicle controllers. This is done via a standardized algorithmic approach. 
 
-The aim of this project is to compare the IBS SoH with a ML approach that uses the (1) IBS parameters alone to develop a comparative SoH indicator and (2) expand the parameters to the ~1000 vehicle signals with possibly identify an even more accurate 12V battery SoH metric.
+The aim of this project is to compare the IBS SoH with a ML approach that uses the (1) IBS parameters alone to develop a comparative SoH indicator and (2) expand the parameters to the ~2500+ vehicle signals with the possibly to identify a more accurate real-time indicator of 12V battery health.
 
 ## Data Acquisition
-Acquisitions of vehicle network traffic was done using Vector CANalyzer tools to log and record data. These data files contain  massive amounts of data and are stored in Vectors proprietary blf binary file format. 
+The vehicle network data collection on the 2024 Fisker Ocean was done using a Vector CANalyzer tool connected to the vehicle's OBD2 port. A series of data logs were collected over a 3-month period (Jun-Aug 2025). These data logs were gathered to primarily capture the IBS signals including IBS SoH which essentially serves as the OEM "ground-truth" for the 12V battery health. The IBS signals show the constant charging cycling of the 12V battery as it is recharged from the HV battery. Most of the vehicle's 50+ ECUs rely on the 12V battery to operate. 
+
+The data logs collected in the Vector binary file .blf format. These must be converted to a timestamped .csv format for project workflow analysis. The .blf data logs are proprietary and, therefore, are not provided here. However, the converted .csv files used by the project are located in the /can_data/*.csv folder. 
 
 ## Data Pre-Processing
-The first step was to convert the Vector blf files to a readable '.csv' that then can be more easily digested by ML models. Again, due to the size of the files as they are recorded at ms intervals it is necessary to convert and down sample at the same time. While there python libraries developed to convert the blf format, I found them difficult and buggy. Therefore, I used Python BLFReader from the python-can library as the basis for developing my own converter and downsampling script that I could use. I do not provide the code here for this converter but may provide it in a separate GitHub repository at a later time. 
+The first step was to convert the Vector .blf files to a readable '.csv' that then can be more easily digested by ML models. Again, due to the size of the files as they are recorded at ms intervals, it is necessary to convert and down sample at the same time. While there python libraries developed to convert the blf format, I found them difficult and buggy. Therefore, I used Python BLFReader from the python-can library as the basis for developing my own blf2csv converter and downsampling script that I could use. I do not provide the code here for this converter but may provide it in a separate GitHub repository at a later time. 
 
-After converting and down sampling the data to a 1 second rate, I then began the process of pre-processing and cleaning the data. 
-First approach was to only use IBS signals itself. Therefore, all data other than timestamp and IBS vehicle signals were removed. Followed by converting not numeric signals to numeric. 
+After converting and down sampling the data to a 1 second rate, I then began the process of pre-processing and cleaning the data. The first approach was to only use IBS signals themselves. Therefore, all data other than timestamp and IBS vehicle signals were removed. Followed by converting non-numeric IBS signals to numeric. 
 
-Second approach was to do feature engineering on the complete set of vehicle signals to find the imost mportant features that correlate to LV battery SoH. From there the top features were cleaned for only numeric. 
+Second approach was to do feature engineering on the complete set of vehicle signals to find the imost important features that correlate to LV battery SoH. From there the top features were selected and cleaned for ML modeling. 
 
 ## Modeling Approach
-Initially I used the only the IBS signals themselves with a standard algorithm to compute a SoH that could be compared against that reported by the IBS **(SOH1)**.
+Initially I used the only the IBS signals themselves with a standard physics based algorithm to compute a **calculated SOH1** that could be compared against that reported by the **IBS SOH**.
 
 <p align="center">
 
@@ -70,23 +73,26 @@ $$
 
 </p>
 
-
-Second, I used ML models on the same IBS data to determine a SoH **(SOH2)**. Third, I used the top vehicle network features discovered along with various ML models (from Linear Regression to DNNs) to attempt to improve the LV SoH even further **(SOH3)**. 
+I started by using fairly simple and straightforward ML models on both data targets - IBS SOH and calculated SOH1 - by training Linear Regression cross validation + Ridge + Lasso models on the IBS only signals. Then I expanded features to include charge cycle metrics and utilized Decision Tree and Random Forest modeling techniques to detect which signals are most highly correlated to the real-time calculated SOH1. Finally, I progressed to using the very power LSTM models on the entire set of network signals in attempt to more accurately predict the real-time 12V battery health. 
 
 ## Modeling Evaluation
 ML models used for this project were as follow:
-- Linear Regresssion + Ridge + Lasso
+- Linear Regresssion + Ridge + Lasso (+cross validation on hyperparameters)
 - Decision Tree
 - Random Forest Ensemble
-- LSTM (Long Short-Term Memory): subset of RNN (Regressive Neural Network) used for time series data
+- LSTM (Long Short-Term Memory): subset of more powerful RNN (Regressive Neural Network) class used for time series data on large data sets with many features
 
-## Results & Next Steps
+## Jupyter Notebooks
+The main Jupyter notebook that serves as the fundamental guide for the project is [cs_main_pipeline.ipynb](./cs_main_pipeline.ipynb)
+
+## Insights & Next Steps
 - Initial results demonstrate that analysis of the vehicle network data reveals there are reliable predictors of overall vehicle health - including load and wake-state releated signals - revealing a scalable path to predictive vehicle intelligence. 
 - Even simple ML models, using just IBS signals, can start capturing dynamics that vendor SOH misses.
 - By incorporating more signals and modern ML (LSTMs), we can capture real-time state of health more accurately and robustly. 
-- Looking at how we may actualy deploy this in a vehicle, we could use the simpler ML models using just the IBS signals embedded in a vehicle ECU give "real-time" predictive behavior. To further extend the fleet wide analytics the more powerful LSTM model could be deployed to the cloud to give on-going insights to vehicle behavior. This would represet a good starting point for further exploration. 
+- Looking at how we may actually deploy this in a vehicle, we could use the simpler ML models using just the IBS signals embedded in a vehicle ECU to give "real-time" predictive behavior. To further extend the fleet wide analytics and insights we could use a more powerful LSTM model deployed to the cloud to give on-going insights to vehicle behavior. This would represet a good starting point for further exploration. 
 
 ## GitHub Project Repository
+<pre>
 vehicle-soh-capstone/
 ├── README.md               # README - start here for project overview
 ├── cs_main_pipeline.ipynb  # main project notebook
@@ -112,6 +118,24 @@ vehicle-soh-capstone/
 │
 ├── src/
 │   ├── __init__.py
+│   ├── cs_convert_blf2csv.py   # BLF to CSV conversion utility   
 │   └── soh_utils.py        # SOH calculations, merge_short_gaps, cycle counting
 │
 └── requirements.txt
+</pre>
+
+## BLF → CSV Converter 
+Convert Vector .blf files to .csv using provided DBC files.
+
+**Script:** `src/cs_convert_blf2csv.py`  
+**Outputs:** `<outdir>/<blf_basename>.csv`
+
+### Install
+pip install python-can cantools pandas numpy tqdm
+
+
+### Contact and Further Information
+**Jason Waterman**  
+Email: [jawaterman@gmail.com](mailto:jawaterman@gmail.com)  
+LinkedIn: [www.linkedin.com/in/jasonwaterman](https://www.linkedin.com/in/jasonwaterman)
+
